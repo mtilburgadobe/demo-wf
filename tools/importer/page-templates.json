@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "projectType": "da",
+    "detectionMode": "auto"
+  },
+  "templates": [
+    {
+      "name": "homepage",
+      "urls": [
+        "https://www.wellsfargo.com/"
+      ],
+      "description": "Wells Fargo consumer homepage with hero promo, product navigation, promo tile carousel, feature highlights, app promo, community columns, help-cta, and disclaimers",
+      "blocks": [
+        {
+          "name": "hero",
+          "detection": ".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container",
+          "variant": "default or overlay-bottom",
+          "notes": "Image + heading + CTA, no multiple h3s"
+        },
+        {
+          "name": "cards",
+          "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
+          "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
+        },
+        {
+          "name": "accordion",
+          "detection": "details.show-hide-content-wrapper",
+          "variant": "default",
+          "notes": "Groups consecutive <details> siblings into one block"
+        },
+        {
+          "name": "disclaimers",
+          "detection": ".ps-footnote",
+          "variant": "default",
+          "notes": "Numbered footnotes section"
+        }
+      ]
+    },
+    {
+      "name": "product-landing",
+      "urls": [
+        "https://www.wellsfargo.com/mortgage/",
+        "https://www.wellsfargo.com/mortgage/buying-a-house/",
+        "https://www.wellsfargo.com/es/online-banking/biometric/",
+        "https://www.wellsfargo.com/es/online-banking/manage-accounts/card-controls/"
+      ],
+      "description": "Wells Fargo product landing pages — uses smart auto-detection for block mapping. Supports multiple heroes, cards with/without images, accordion FAQs, and disclaimers.",
+      "blocks": [
+        {
+          "name": "hero",
+          "detection": ".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container",
+          "variant": "default",
+          "notes": "Multiple heroes per page supported. Detected by: image + heading + optional CTA, not multiple h3s"
+        },
+        {
+          "name": "cards",
+          "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
+          "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
+        },
+        {
+          "name": "accordion",
+          "detection": "details.show-hide-content-wrapper",
+          "variant": "default",
+          "notes": "Groups consecutive <details> siblings. FAQ questions use <h3> in col1, answer in col2"
+        },
+        {
+          "name": "disclaimers",
+          "detection": ".ps-footnote",
+          "variant": "default",
+          "notes": "Numbered footnotes at page bottom"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+/* Breadcrumb block — mobile first */
+main > .section.breadcrumb-container {
+  margin: 0 auto;
+  padding: 0;
+}
+
+.breadcrumb nav ol {
+  list-style: none;
+  margin: 0;
+  padding: 17px 0 5px;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb nav ol li {
+  display: none;
+  font-size: 12px;
+  line-height: 1.25;
+  color: var(--wf-text-secondary);
+  white-space: nowrap;
+}
+
+.breadcrumb nav ol li a {
+  color: var(--wf-text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb nav ol li a:hover {
+  text-decoration: underline;
+  color: var(--wf-text-primary);
+}
+
+.breadcrumb nav ol li[aria-current="page"] {
+  color: var(--wf-text-primary);
+  font-weight: 600;
+}
+
+/* Mobile: show only parent item as back link */
+.breadcrumb nav ol li:nth-last-child(2) {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb nav ol li:nth-last-child(2) a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--wf-text-primary);
+}
+
+.breadcrumb nav ol li:nth-last-child(2) a::before {
+  content: '\2039';
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+  top: -2px;
+  left: -1px;
+  position: relative;
+}
+
+/* Desktop: full breadcrumb trail */
+@media (width >= 1024px) {
+  .breadcrumb nav ol {
+    padding-top: 26px;
+  }
+
+  .breadcrumb nav ol li {
+    display: inline-flex;
+    align-items: center;
+    font-size: 15px;
+  }
+
+  .breadcrumb nav ol li:nth-last-child(2) a::before {
+    content: none;
+  }
+
+  .breadcrumb nav ol li + li::before {
+    content: '\203A';
+    margin: 0 12px 0 11px;
+    color: var(--wf-text-secondary);
+    font-size: 22px;
+    font-weight: 400;
+    position: relative;
+    line-height: 0;
+    top: -2px;
+  }
+}

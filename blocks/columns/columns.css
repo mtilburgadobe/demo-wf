@@ -1,0 +1,492 @@
+.columns > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.columns img {
+  width: 100%;
+}
+
+.columns > div > div {
+  order: 1;
+}
+
+.columns > div > .columns-img-col {
+  order: 0;
+}
+
+.columns > div > .columns-img-col img {
+  display: block;
+}
+
+@media (width >= 768px) {
+  .columns > div {
+    align-items: center;
+    flex-direction: unset;
+    gap: 24px;
+  }
+
+  .columns > div > div {
+    flex: 1;
+    order: unset;
+  }
+}
+
+/* --- Variant: center --- */
+
+/* Authored as | Columns (center) | — fully center-aligned content */
+
+.columns.center > div {
+  text-align: center;
+}
+
+.columns-container:has(.columns.center) .default-content-wrapper {
+  text-align: center;
+}
+
+/* --- Variant: center-headings --- */
+
+/* Authored as | Columns (center-headings) | — headings centered, content left */
+
+.columns.center-headings > div > div h2,
+.columns.center-headings > div > div h3,
+.columns.center-headings > div > div h4 {
+  text-align: center;
+}
+
+.columns-container:has(.columns.center-headings) .default-content-wrapper {
+  text-align: center;
+}
+
+/* --- Variant: contact --- */
+
+/* Authored as | Columns (contact) | — multi-column contact info */
+
+.columns.contact > div {
+  gap: 24px;
+}
+
+.columns.contact > div > div h3 {
+  font-size: var(--heading-font-size-s);
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.columns.contact > div > div p {
+  font-size: var(--body-font-size-s);
+  line-height: 1.5;
+}
+
+@media (width >= 768px) {
+  .columns.contact > div {
+    align-items: flex-start;
+  }
+}
+
+/* --- Variant: panel --- */
+
+/* Authored as | Columns (panel) | — white columns on gray background */
+.columns.panel {
+  background: var(--wf-bg-gray, #e2dede);
+  padding: 16px;
+}
+
+.columns.panel > div {
+  background: transparent;
+  padding: 0;
+  gap: 16px;
+}
+
+.columns.panel > div > div {
+  box-sizing: border-box;
+  background: #fff;
+  padding: 32px;
+}
+
+.columns.panel > div > .columns-img-col {
+  padding: 0;
+  margin-bottom: -16px;
+}
+
+.columns.panel > div > .columns-img-col img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.columns.panel > div > div h3 {
+  font-size: var(--heading-font-size-m, 22px);
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.columns.panel ul {
+  padding-left: 20px;
+}
+
+.columns.panel ul li {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+/* 2-col panel: tablet stacks vertically */
+@media (width >= 768px) {
+  .columns.panel.columns-2-cols > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* 2-col panel: desktop side by side, image+text touching */
+@media (width >= 1024px) {
+  .columns.panel.columns-2-cols > div {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .columns.panel.columns-2-cols > div > .columns-img-col {
+    flex: 0 0 40%;
+    margin-bottom: 0;
+    margin-right: -16px;
+  }
+
+  .columns.panel.columns-2-cols > div > .columns-img-col img {
+    height: 100%;
+  }
+
+  .columns.panel.columns-2-cols:not([class*="ratio-"]) > div > div:not(.columns-img-col) {
+    flex: 1;
+  }
+}
+
+/* 3-col panel: tablet — cols 1+2 in first row, col 3 in second row */
+@media (width >= 768px) {
+  .columns.panel.columns-3-cols > div {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .columns.panel.columns-3-cols > div > .columns-img-col {
+    flex: 0 0 40%;
+    margin-bottom: 0;
+    margin-right: -16px;
+  }
+
+  .columns.panel.columns-3-cols > div > .columns-img-col img {
+    height: 100%;
+  }
+
+  .columns.panel.columns-3-cols > div > div:nth-child(2) {
+    flex: 1;
+  }
+
+  .columns.panel.columns-3-cols > div > div:nth-child(3) {
+    flex: 0 0 100%;
+  }
+}
+
+/* 3-col panel: desktop — all three columns side by side, cols 1+2 touching */
+@media (width >= 1024px) {
+  .columns.panel.columns-3-cols > div {
+    flex-wrap: nowrap;
+  }
+
+  .columns.panel.columns-3-cols > div > .columns-img-col {
+    flex: 0 0 30%;
+    margin-right: -16px;
+  }
+
+  .columns.panel.columns-3-cols > div > div:nth-child(2) {
+    flex: 1;
+    border-right: 1px solid var(--wf-bg-gray, #e2dede);
+  }
+
+  .columns.panel.columns-3-cols > div > div:nth-child(3) {
+    flex: 0 0 30%;
+    border-top: none;
+  }
+}
+
+/* --- Variant: badges --- */
+
+/* Authored as | Columns (badges) | — inline badges at natural size */
+
+.columns.badges.block > div {
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+}
+
+.columns.badges.block > div > div {
+  flex: 0 0 auto;
+  order: unset;
+}
+
+.columns.badges.block > div > div picture {
+  display: inline-block;
+}
+
+.columns.badges.block > div > div img {
+  width: auto;
+  height: auto;
+}
+
+/* --- Variants: column ratios --- */
+
+/* Tablet+ (768px): apply specified ratios, accounting for gap */
+@media (width >= 768px) {
+  .columns.ratio-25-75 > div > div:first-child { flex: 0 0 calc(25% - 8px); }
+
+  .columns.ratio-25-75 > div > div:last-child { flex: 0 0 calc(75% - 8px); }
+
+  .columns.ratio-33-67 > div > div:first-child { flex: 0 0 calc(33% - 8px); }
+
+  .columns.ratio-33-67 > div > div:last-child { flex: 0 0 calc(67% - 8px); }
+
+  .columns.ratio-75-25 > div > div:first-child { flex: 0 0 calc(75% - 8px); }
+
+  .columns.ratio-75-25 > div > div:last-child { flex: 0 0 calc(25% - 8px); }
+
+  .columns.ratio-67-33 > div > div:first-child { flex: 0 0 calc(67% - 8px); }
+
+  .columns.ratio-67-33 > div > div:last-child { flex: 0 0 calc(33% - 8px); }
+}
+
+/* --- Variant: app-promo --- */
+/* stylelint-disable no-descending-specificity */
+
+/* Phone image left, copy + store badges right; vertically centered. */
+.columns.app-promo > div {
+  align-items: center;
+  gap: 48px;
+}
+
+.columns.app-promo > div > .columns-img-col img {
+  max-width: 290px;
+  margin: 0 auto;
+}
+
+/* Store badge links sit inline at natural size */
+.columns.app-promo a:has(img) {
+  display: inline-block;
+}
+
+.columns.app-promo a:has(img) img {
+  width: auto;
+  height: 40px;
+}
+
+/* app-promo purple — matches the live WF "Bank Easy" promo panel.
+   Authored as | Columns (app-promo, purple) |. */
+.columns.app-promo.purple {
+  background: linear-gradient(164deg, #21184e 3.72%, #6064d1 54.36%);
+  padding: 40px 24px;
+}
+
+.columns.app-promo.purple,
+.columns.app-promo.purple :is(h2, h3, h4, p, li, strong, em) {
+  color: var(--wf-bg-white);
+}
+
+.columns.app-promo.purple a:not(:has(img)) {
+  color: var(--wf-bg-white);
+}
+
+@media (width >= 768px) {
+  .columns.app-promo.purple {
+    padding: 56px 48px;
+  }
+}
+
+/* --- Variant: tabular --- */
+
+.columns.tabular {
+  border: 1px solid var(--wf-bg-gray, #e2dede);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.columns.tabular > div > div:last-child p {
+  border-top: 1px solid #d9d9d9;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.columns.tabular > div > div:last-child p strong {
+  display: inline-block;
+  min-width: 180px;
+}
+
+/* --- Variant: compact --- */
+
+/* Authored as | Columns (compact) | — image renders at its natural size
+   instead of stretching to fill the cell; text column takes remaining width.
+   The max-height cap keeps a small/thin graphic from ballooning if DA drops the
+   img width/height on publish and EDS falls back to an upscaled rendition. */
+
+.columns.compact > div > .columns-img-col img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 320px;
+}
+
+@media (width >= 768px) {
+  .columns.compact > div > .columns-img-col {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    max-width: 220px;
+  }
+}
+
+/* --- Variant: cta-banner --- */
+
+/* Authored as | Columns (cta-banner) | — light gradient promo banner with
+   a center divider, bordered + rounded. Each side vertically centered. */
+.columns.cta-banner {
+  background: linear-gradient(180deg, #e9e8e4 0%, #fcfcfc 40%, #fcfcfc 100%);
+  border: 1px solid #e7e4db;
+  border-radius: 5px;
+  padding: 24px 32px;
+}
+
+.columns.cta-banner > div {
+  align-items: center;
+  gap: 0;
+}
+
+.columns.cta-banner > div > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 32px;
+}
+
+.columns.cta-banner > div > div:first-child {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.columns.cta-banner > div > div h2,
+.columns.cta-banner > div > div h3 {
+  margin: 0;
+  font-weight: 400;
+  font-size: var(--heading-font-size-l);
+  white-space: nowrap;
+}
+
+.columns.cta-banner > div > div p {
+  margin: 0;
+}
+
+@media (width >= 768px) {
+  .columns.cta-banner > div > div:first-child {
+    border-bottom: none;
+    border-right: 1px solid #d9d9d9;
+    justify-content: center;
+  }
+
+  .columns.cta-banner > div > div:last-child {
+    justify-content: center;
+    text-align: center;
+    display: block;
+  }
+}
+
+/* --- Variant: feature-banner --- */
+
+/* Authored as | Columns (feature-banner) | — full-bleed image flush against a
+ * solid color text panel with white serif heading. col1 = image only, col2 =
+ * heading (+ optional subhead). Panel color comes from the --feature-banner-bg
+ * custom property; default is the taupe gradient, overridable by a color
+ * modifier class (e.g. banner-taupe) added in block options. Mobile-first:
+ * stacked < 768px, side-by-side >= 768px (50:50 default, 45:55 with
+ * ratio-45-55). */
+
+.columns.feature-banner > div {
+  gap: 0;
+  align-items: stretch;
+}
+
+.columns.feature-banner > div > div {
+  margin: 0;
+}
+
+.columns.feature-banner > div > .columns-img-col,
+.columns.feature-banner > div > div:has(picture) {
+  padding: 0;
+  line-height: 0;
+}
+
+.columns.feature-banner picture,
+.columns.feature-banner > div > div:has(picture) img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.columns.feature-banner > div > div:not(:has(picture)) {
+  background: var(
+    --feature-banner-bg,
+    linear-gradient(var(--wf-banner-taupe-top), var(--wf-banner-taupe-bottom))
+  );
+  color: var(--wf-bg-white);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.columns.feature-banner h2,
+.columns.feature-banner h3 {
+  color: var(--wf-bg-white);
+  font-family: georgia, 'Times New Roman', times, serif;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+.columns.feature-banner p {
+  color: var(--wf-bg-white);
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Color modifier classes set the panel background custom property. Applied as a
+ * block option, e.g. | Columns (feature-banner, banner-taupe) |. Add new colors
+ * here as one line each (no JS needed). */
+.columns.feature-banner.banner-taupe {
+  --feature-banner-bg: linear-gradient(var(--wf-banner-taupe-top), var(--wf-banner-taupe-bottom));
+}
+
+.columns.feature-banner.banner-blue {
+  --feature-banner-bg: linear-gradient(var(--wf-banner-blue-top), var(--wf-banner-blue-bottom));
+}
+
+@media (width >= 768px) {
+  .columns.feature-banner > div {
+    flex-flow: row nowrap;
+  }
+
+  .columns.feature-banner > div > div:has(picture) {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .columns.feature-banner > div > div:not(:has(picture)) {
+    flex: 1 1 50%;
+    padding: 48px 56px;
+  }
+
+  .columns.feature-banner.ratio-45-55 > div > div:has(picture) {
+    flex: 0 0 45%;
+    max-width: 45%;
+  }
+
+  .columns.feature-banner.ratio-45-55 > div > div:not(:has(picture)) {
+    flex: 0 0 55%;
+    max-width: 55%;
+  }
+}
