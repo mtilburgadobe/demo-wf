@@ -55,6 +55,23 @@ export default function decorate(block) {
 
   const picture = cell.querySelector('picture');
 
+  // Article variant: the banner is art-directed. Authors supply the mobile crop
+  // (…_M.<ext>); on tablet/desktop the wider banner (…_D.<ext>) is served. If the
+  // authored image follows the _M naming convention and no desktop source exists,
+  // synthesize one so the round-trip-safe single image still gets art direction.
+  if (picture && block.classList.contains('article')) {
+    const img = picture.querySelector('img');
+    const src = img ? (img.getAttribute('src') || '') : '';
+    const hasDesktopSource = !!picture.querySelector('source[media]');
+    if (img && /_M(\.[a-z]+)(\?|$)/i.test(src) && !hasDesktopSource) {
+      const desktopSrc = src.replace(/_M(\.[a-z]+)(\?|$)/i, '_D$1$2');
+      const source = document.createElement('source');
+      source.setAttribute('media', '(min-width: 768px)');
+      source.setAttribute('srcset', desktopSrc);
+      picture.prepend(source);
+    }
+  }
+
   if (picture) {
     const bg = document.createElement('div');
     bg.className = 'hero-bg';
@@ -77,7 +94,7 @@ export default function decorate(block) {
   }
 
   const allHeroes = document.querySelectorAll('.hero');
-  if (allHeroes[0] === block) {
+  if (allHeroes[0] === block && !block.classList.contains('article')) {
     block.classList.add('overlay-bottom-mobile');
   }
 }

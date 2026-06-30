@@ -608,3 +608,117 @@ main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::b
     border-radius: 8px;
   }
 }
+
+/* === Variant: article — editorial intro banner === */
+
+/* Authored as | Hero (article) |. Matches the creditcards.wellsfargo.com article
+   intro: a full-width banner image with the H1 (and a yellow accent bar above it)
+   overlaid on the left. Art-directed image — a taller crop on mobile, a wide
+   banner on desktop. The intro body paragraphs are authored as a SEPARATE default
+   content section below this block (matching the live structure). */
+.hero.article {
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* Mobile: image on top, heading below it (stacked) */
+.hero.article .hero-bg {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.hero.article .hero-bg img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 39 / 23;
+}
+
+.hero.article .hero-content {
+  position: relative;
+  box-sizing: border-box;
+  display: block;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px 16px 0;
+  text-align: left;
+}
+
+/* Yellow accent bar above the heading */
+.hero.article .hero-content::before {
+  content: "";
+  display: block;
+  width: 90px;
+  height: 4px;
+  margin: 0 0 16px;
+  background-color: var(--heading-bar-color, #ffcd41);
+}
+
+.hero.article .hero-content h1,
+.hero.article .hero-content h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1.25;
+  color: var(--wf-dark, #141414);
+}
+
+/* Tablet & desktop: full-bleed banner at a fixed 326px height (matches live).
+   The image fills the banner via object-fit: cover as an absolute background
+   layer; the heading sits on top, vertically centered, and its text aligns to
+   the 1400px content column (left). */
+@media (width >= 768px) {
+  .hero.article {
+    position: relative;
+    display: block;
+    min-height: 326px;
+  }
+
+  .hero.article .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    line-height: normal;
+  }
+
+  .hero.article .hero-bg picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero.article .hero-bg img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    object-fit: cover;
+  }
+
+  /* Heading layer — vertically centered, text aligned to the 1400px column.
+     Overrides the base >=1024px overlay rules (row, 28% width, 450px height). */
+  .hero.article .hero-content {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    max-width: var(--content-max-width, 1400px);
+    min-height: 326px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  .hero.article .hero-content h1,
+  .hero.article .hero-content h2 {
+    max-width: 50%;
+    font-size: 32px;
+  }
+}
