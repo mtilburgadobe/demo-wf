@@ -1,0 +1,106 @@
+/* Teaser block — "Other articles that might interest you" — mobile first */
+.teaser ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.teaser .teaser-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 29px 21px 40px;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  background: var(--wf-bg-white, #fff);
+  box-shadow: 0 4px 10px 0 rgb(0 0 0 / 10%);
+}
+
+/* top row: title left, image right */
+.teaser .teaser-card-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.teaser .teaser-card-title {
+  flex: 1 1 55%;
+}
+
+.teaser .teaser-card-title a {
+  text-decoration: none;
+}
+
+.teaser .teaser-card-title h3 {
+  margin: 0;
+  font-size: var(--heading-font-size-m, 20px);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--wf-dark, #141414);
+}
+
+.teaser .teaser-card-title a:hover h3 {
+  text-decoration: underline;
+}
+
+.teaser .teaser-card-image {
+  flex: 0 0 45%;
+  max-width: 45%;
+}
+
+.teaser .teaser-card-image picture {
+  display: block;
+}
+
+.teaser .teaser-card-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 173 / 105;
+  object-fit: cover;
+}
+
+/* CTA button — bordered pill, half the card width, left aligned */
+.teaser .teaser-card-cta a.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  min-width: fit-content;
+  box-sizing: border-box;
+  padding: 8px 16px;
+  border: 1px solid var(--wf-text-primary, #3b3331);
+  border-radius: 20px;
+  background: var(--wf-bg-white, #fff);
+  color: var(--wf-text-primary, #3b3331);
+  font-size: var(--body-font-size-m, 17px);
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.teaser .teaser-card-cta a.button:hover {
+  background: var(--wf-bg-light, #f9f7f6);
+  text-decoration: none;
+}
+
+/* Tablet & desktop: 3 cards side by side */
+@media (width >= 768px) {
+  .teaser ul {
+    flex-direction: row;
+    gap: 32px;
+  }
+
+  .teaser .teaser-card {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
