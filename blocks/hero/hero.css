@@ -609,20 +609,28 @@ main .section.hero-container.heading-bar.center-align .hero.overlay-bottom h2::b
   }
 }
 
+/* Full-bleed section for the article hero. The base rule `main > .section`
+   (max-width: 1400px) has higher specificity than `.hero-container`, so at
+   viewports >= 1400px the section would otherwise cap and gain side margins.
+   This targeted, higher-specificity rule keeps the banner edge-to-edge. */
+main > .section.hero-container:has(.hero.article) {
+  max-width: none;
+}
+
 /* === Variant: article — editorial intro banner === */
 
 /* Authored as | Hero (article) |. Matches the creditcards.wellsfargo.com article
-   intro: a full-width banner image with the H1 (and a yellow accent bar above it)
+   intro: a full-bleed banner image with the H1 (and a yellow accent bar above it)
    overlaid on the left. Art-directed image — a taller crop on mobile, a wide
    banner on desktop. The intro body paragraphs are authored as a SEPARATE default
-   content section below this block (matching the live structure). */
+   content section below this block. */
 .hero.article {
   flex-direction: column;
   align-items: stretch;
   overflow: hidden;
 }
 
-/* Mobile: image on top, heading below it (stacked) */
+/* Mobile: image on top, heading below (stacked) */
 .hero.article .hero-bg {
   position: relative;
   width: 100%;
