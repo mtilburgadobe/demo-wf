@@ -202,6 +202,50 @@
     text-align: left;
 }
 
+/* ===== Segmented Modifier =====
+   Pill-style segmented control (matches the live mortgage-rates rate switcher):
+   a rounded gray track holding equal-width segments; the active segment is a
+   white pill with a dark border and bold label. */
+.tabs.segmented .tabs-list {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 4px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--wf-bg-warm, #f4f0ed);
+}
+
+.tabs.segmented .tabs-list button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background-color: transparent;
+    color: var(--wf-text-primary, #3b3331);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.tabs.segmented .tabs-list button[aria-selected="true"] {
+    margin-bottom: 0;
+    border-color: var(--wf-text-primary, #3b3331);
+    background-color: var(--wf-bg-white, #fff);
+    color: var(--wf-text-primary, #3b3331);
+    font-weight: 700;
+}
+
+/* center the whole segmented control within its section */
+.tabs.segmented {
+    text-align: center;
+}
+
 /* ===== Panel Border Modifier ===== */
 .tabs.panel-border .tabs-list {
     border-bottom: none;
@@ -243,4 +287,120 @@
     color: var(--wf-text-primary);
     font-size: 1rem;
     line-height: 1.5;
+}
+
+/* ===== Rate table (mortgage rates widget) =====
+   The rate table is a plain <table> emitted inside a tab panel. Styled to
+   match the live site: borderless card-style rows separated by hairlines,
+   loan name as a large link, metrics right-aligned with a small gray label
+   above each value. */
+.tabs .tabs-panel p:first-child {
+    margin: 0 0 20px;
+    color: var(--wf-text-primary, #3b3331);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.3;
+    text-align: center;
+}
+
+/* Segmented (rate widget) panels sit on a light-gray field so the white
+   rate cards stand out — matches the live site's #F9F7F6 backing. */
+.tabs.segmented .tabs-panel {
+    padding: 8px 24px 24px;
+    background-color: var(--wf-bg-light, #f9f7f6);
+}
+
+/* Each rate row renders as its own white card. border-collapse:separate with
+   vertical spacing lets rows sit apart; the card border/radius/shadow live on
+   the cells and the outer corners are rounded via first/last cell.
+   The cards are inset from the gray field and centered (they don't span the
+   full width). */
+.tabs .tabs-panel table {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0 16px;
+}
+
+/* No single header row — the live site labels each value inside every card.
+   Hide the thead and repeat the column name above each value via ::before. */
+.tabs .tabs-panel table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Card cells: white background, top+bottom hairline border, generous padding.
+   Each value is preceded by its small gray column label (::before), so the
+   Loan/Interest/APR/Points labels repeat inside every card. */
+.tabs .tabs-panel table tbody td {
+    padding: 20px 16px;
+    border-top: 1px solid var(--wf-bg-gray, #e2dede);
+    border-bottom: 1px solid var(--wf-bg-gray, #e2dede);
+    background-color: var(--wf-bg-white, #fff);
+    color: var(--wf-dark, #141414);
+    font-size: var(--heading-font-size-l, 24px);
+    font-weight: 600;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.tabs .tabs-panel table tbody td::before {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--wf-text-secondary, #665e5c);
+    font-size: var(--body-font-size-xs, 13px);
+    font-weight: 400;
+}
+
+.tabs .tabs-panel table tbody td:nth-child(1)::before { content: "Loan"; }
+.tabs .tabs-panel table tbody td:nth-child(2)::before { content: "Interest"; }
+.tabs .tabs-panel table tbody td:nth-child(3)::before { content: "APR"; }
+.tabs .tabs-panel table tbody td:nth-child(4)::before { content: "Points"; }
+
+/* Left edge of the card — rounded corners + left border. Loan name is the
+   brand-colored link, regular weight. */
+.tabs .tabs-panel table tbody td:first-child {
+    border-left: 1px solid var(--wf-bg-gray, #e2dede);
+    border-radius: 10px 0 0 10px;
+    color: var(--wf-link-hover, #6048ad);
+    font-weight: 400;
+}
+
+/* Right edge of the card — rounded corners + right border. */
+.tabs .tabs-panel table tbody td:last-child {
+    border-right: 1px solid var(--wf-bg-gray, #e2dede);
+    border-radius: 0 10px 10px 0;
+}
+
+/* Subtle card shadow on the row. */
+.tabs .tabs-panel table tbody tr {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%);
+}
+
+/* Trailing rates disclosure paragraph. */
+.tabs .tabs-panel table + p {
+    margin: 16px 0 0;
+    color: var(--wf-text-secondary, #787070);
+    font-size: var(--body-font-size-xs, 13px);
+    line-height: 1.45;
+}
+
+/* Mobile: shrink the large metric values so rows don't overflow. */
+@media (width < 768px) {
+    .tabs .tabs-panel table thead th {
+        font-size: 11px;
+    }
+
+    .tabs .tabs-panel table tbody td {
+        padding: 16px 10px;
+        font-size: var(--body-font-size-m, 17px);
+    }
 }

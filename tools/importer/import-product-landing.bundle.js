@@ -85,35 +85,47 @@ var CustomImportScript = (() => {
 
   // tools/importer/parsers/cards-feature.js
   function parse2(element, { document }) {
-    let cardItems = Array.from(element.querySelectorAll(
-      '.enhanced-txt-cm.mid-size-promo, .ps-promo-full-item, [class*="card-content"]:not(.card-container)'
-    ));
-    if (cardItems.length === 0) {
-      const container = element.querySelector('.card-container, [class*="promo-full-items"]');
-      if (container) {
-        cardItems = Array.from(container.children);
+    const isFeatureGrid = element.matches(".ps-marketing-small-promo-items") || !!element.querySelector(".ps-marketing-small-promo-item");
+    let cardItems;
+    if (isFeatureGrid) {
+      cardItems = Array.from(element.querySelectorAll(".ps-marketing-small-promo-item"));
+    } else {
+      cardItems = Array.from(element.querySelectorAll(
+        '.enhanced-txt-cm.mid-size-promo, .ps-promo-full-item, [class*="card-content"]:not(.card-container)'
+      ));
+      if (cardItems.length === 0) {
+        const container = element.querySelector('.card-container, [class*="promo-full-items"]');
+        if (container) cardItems = Array.from(container.children);
       }
-    }
-    if (cardItems.length === 0) {
-      cardItems = Array.from(element.querySelectorAll(":scope > div"));
+      if (cardItems.length === 0) {
+        cardItems = Array.from(element.querySelectorAll(":scope > div"));
+      }
     }
     const cells = [];
     cardItems.forEach((card) => {
-      const image = card.querySelector("img");
-      const textBody = card.querySelector(".enhanced-txt-body, .ps-marketing-text") || card;
-      const heading = textBody.querySelector("h3, h2, h4") || card.querySelector("h3, h2, h4");
-      let description = null;
-      const candidates = textBody.querySelectorAll(":scope > div, :scope > p");
-      for (const child of candidates) {
-        if (child.querySelector("h2, h3, h4")) continue;
-        const link = child.querySelector("a");
-        if (link && child.textContent.trim() === link.textContent.trim()) continue;
-        if (child.textContent.trim()) {
-          description = child;
-          break;
+      let image = null;
+      if (isFeatureGrid) {
+        image = card.querySelector(".ps-marketing-icon img");
+      }
+      if (!image) {
+        image = card.querySelector("img");
+      }
+      const textBody = card.querySelector(".ps-marketing-text, .enhanced-txt-body") || card;
+      const heading = textBody.querySelector("h2, h3, h4") || card.querySelector("h2, h3, h4");
+      let description = textBody.querySelector("p.ps-marketing-text-content");
+      if (!description) {
+        const candidates = textBody.querySelectorAll(":scope > div, :scope > p");
+        for (const child of candidates) {
+          if (child.querySelector("h2, h3, h4")) continue;
+          const link = child.querySelector("a");
+          if (link && child.textContent.trim() === link.textContent.trim()) continue;
+          if (child.textContent.trim()) {
+            description = child;
+            break;
+          }
         }
       }
-      const ctaLink = textBody.querySelector("p > a, a.cta, a.button") || card.querySelector("p > a");
+      const ctaLink = textBody.querySelector(".learn-more-mobile a, .learn-more a, p > a, a.cta, a.button") || card.querySelector(".ps-marketing-promo-link a, p > a");
       const contentCell = [];
       if (heading) {
         const h3 = document.createElement("h3");
@@ -128,7 +140,7 @@ var CustomImportScript = (() => {
       if (ctaLink) {
         const p = document.createElement("p");
         const link = document.createElement("a");
-        link.href = ctaLink.href;
+        link.href = ctaLink.href || ctaLink.getAttribute("href") || "";
         link.textContent = ctaLink.textContent.replace(/\s*>\s*$/, "").trim();
         p.appendChild(link);
         contentCell.push(p);
@@ -138,12 +150,16 @@ var CustomImportScript = (() => {
       }
     });
     let variant = "Cards (separator)";
-    const firstImg = element.querySelector("img");
-    if (firstImg) {
-      const src = (firstImg.src || firstImg.getAttribute("src") || "").toLowerCase();
-      const w = parseInt(firstImg.getAttribute("width") || "0", 10);
-      if (w > 0 && w <= 100 || src.includes("64x64") || src.includes("icon") || src.includes("-64x") || src.includes("gradient-64")) {
-        variant = "Cards (icons, bg-image)";
+    if (isFeatureGrid) {
+      variant = "Cards (icons)";
+    } else {
+      const firstImg = element.querySelector("img");
+      if (firstImg) {
+        const src = (firstImg.src || firstImg.getAttribute("src") || "").toLowerCase();
+        const w = parseInt(firstImg.getAttribute("width") || "0", 10);
+        if (w > 0 && w <= 100 || src.includes("64x64") || src.includes("icon") || src.includes("-64x") || src.includes("gradient-64")) {
+          variant = "Cards (icons)";
+        }
       }
     }
     const block = WebImporter.Blocks.createBlock(document, { name: variant, cells });
@@ -152,7 +168,17 @@ var CustomImportScript = (() => {
 
   // tools/importer/parsers/accordion.js
   function parse3(element, { document }) {
-    const detailsList = element.tagName === "DETAILS" ? [element] : Array.from(element.querySelectorAll("details"));
+    let detailsList;
+    if (element.tagName === "DETAILS") {
+      detailsList = [element];
+      let sib = element.nextElementSibling;
+      while (sib && sib.tagName === "DETAILS" && (sib.className || "").includes("show-hide-content-wrapper")) {
+        detailsList.push(sib);
+        sib = sib.nextElementSibling;
+      }
+    } else {
+      detailsList = Array.from(element.querySelectorAll("details"));
+    }
     const cells = [];
     detailsList.forEach((details) => {
       const summary = details.querySelector("summary");
@@ -221,37 +247,47 @@ var CustomImportScript = (() => {
 
   // tools/importer/parsers/disclaimers.js
   function parse5(element, { document }) {
-    const footnoteItems = element.querySelectorAll(":scope > p, :scope > div");
+    const items = Array.from(element.querySelectorAll(":scope > p, :scope > div"));
     const cells = [];
-    footnoteItems.forEach((item) => {
-      const numberEl = item.querySelector('[class*="footnote-number"], :scope > span:first-child, :scope > div:first-child');
-      let number = "";
-      let body = null;
-      if (numberEl && numberEl.textContent.trim().match(/^\d+\.?$/)) {
-        number = numberEl.textContent.trim();
-        const bodyEl = item.querySelector(":scope > span:last-child, :scope > div:last-child, :scope > p, :scope > generic");
-        if (bodyEl && bodyEl !== numberEl) {
-          body = bodyEl;
-        } else {
-          const clone = item.cloneNode(true);
-          const firstChild = clone.querySelector(":scope > span:first-child, :scope > div:first-child");
-          if (firstChild) firstChild.remove();
-          body = clone;
-        }
-      } else {
-        const text = item.textContent.trim();
-        const match = text.match(/^(\d+)\.\s*/);
-        if (match) {
-          number = match[1] + ".";
-          body = item;
-        } else if (text) {
-          body = item;
-        }
-      }
-      if (body) {
+    items.forEach((item) => {
+      const numberSpan = item.querySelector(".c20no");
+      const textSpan = item.querySelector(".c20Text");
+      if (numberSpan && numberSpan.textContent.trim().match(/^\d+\.?/)) {
+        const number = numberSpan.textContent.trim().replace(/\s+$/, "");
         const numCell = document.createElement("p");
         numCell.textContent = number;
-        cells.push([[numCell], [body]]);
+        const bodyCell = document.createElement("p");
+        if (textSpan) {
+          bodyCell.innerHTML = textSpan.innerHTML.trim();
+        } else {
+          const clone = item.cloneNode(true);
+          const cn = clone.querySelector(".c20no");
+          if (cn) cn.remove();
+          bodyCell.innerHTML = clone.innerHTML.trim();
+        }
+        const fid = item.getAttribute("id");
+        if (fid) bodyCell.setAttribute("data-footnote-id", fid);
+        cells.push([[numCell], [bodyCell]]);
+        return;
+      }
+      const text = item.textContent.replace(/\s+/g, " ").trim();
+      const match = text.match(/^(\d+)\.\s+(.*)$/);
+      if (match) {
+        const numCell = document.createElement("p");
+        numCell.textContent = match[1] + ".";
+        const bodyCell = document.createElement("p");
+        bodyCell.textContent = match[2];
+        const fid = item.getAttribute("id");
+        if (fid) bodyCell.setAttribute("data-footnote-id", fid);
+        cells.push([[numCell], [bodyCell]]);
+        return;
+      }
+      if (text) {
+        const numCell = document.createElement("p");
+        numCell.textContent = "";
+        const bodyCell = document.createElement("p");
+        bodyCell.textContent = text;
+        cells.push([[numCell], [bodyCell]]);
       }
     });
     if (cells.length > 0) {
@@ -311,6 +347,246 @@ var CustomImportScript = (() => {
     element.replaceWith(block);
   }
 
+  // tools/importer/parsers/tabs.js
+  var KNOWN_REFERENCE_TABS = [
+    { id: "nationalbanks", label: "National banks", slug: "tab-national-banks" },
+    { id: "regionalandcommunitybanks", label: "Regional and community banks", slug: "tab-regional-and-community-banks" },
+    { id: "creditunions", label: "Credit unions", slug: "tab-credit-unions" },
+    { id: "mortgagebrokers", label: "Mortgage brokers", slug: "tab-mortgage-brokers" },
+    { id: "onlineonlymortgagelenders", label: "Online-only mortgage lenders", slug: "tab-online-only-mortgage-lenders" }
+  ];
+  function isKnownReferenceTab(anchorId) {
+    return KNOWN_REFERENCE_TABS.find((t) => t.id === anchorId);
+  }
+  function buildRateTable(panel, document) {
+    const loanWrappers = Array.from(panel.querySelectorAll(".index__loanwrapper___ki3Um")).filter((w) => w.querySelector(".index__link___lRnLV, .index__linkwrapper___pJne8"));
+    const rows = [];
+    loanWrappers.forEach((wrapper) => {
+      const loanNameEl = wrapper.querySelector(".index__link___lRnLV .WFLink__text___Ia8fg, .index__linkwrapper___pJne8 a");
+      const loanName = loanNameEl ? loanNameEl.textContent.trim() : "";
+      if (!loanName) return;
+      const right = wrapper.parentElement ? wrapper.parentElement.querySelector(".index__right___w1BUv") : null;
+      let interest = "";
+      let apr = "";
+      let points = "";
+      if (right) {
+        const metricEls = Array.from(right.querySelectorAll(".index__interest___HVlqg"));
+        [interest, apr, points] = metricEls.map((m) => m.textContent.trim());
+      }
+      rows.push([loanName, interest || "", apr || "", points || ""]);
+    });
+    if (rows.length === 0) return null;
+    const cells = [];
+    cells.push(["Loan", "Interest", "APR", "Points"]);
+    rows.forEach((r) => cells.push(r));
+    return WebImporter.Blocks.createBlock(document, { name: "Table", cells });
+  }
+  function buildRatePanelContent(container, document) {
+    const content = [];
+    const inputsSummary = container.querySelector(".index__content___sJYBT");
+    if (inputsSummary && inputsSummary.textContent.trim()) {
+      const p = document.createElement("p");
+      p.textContent = inputsSummary.textContent.trim();
+      content.push(p);
+    }
+    const table = buildRateTable(container, document);
+    if (table) content.push(table);
+    const disclosure = container.querySelector(".index__ratesdisclosure___y56vs p, .index__ratesdisclosure___y56vs");
+    if (disclosure && disclosure.textContent.trim()) {
+      const p = document.createElement("p");
+      p.textContent = disclosure.textContent.trim();
+      content.push(p);
+    }
+    return content;
+  }
+  function parseRateWidget(element, document) {
+    const container = element.matches('.index__segmentedContainer___JQRgw, [class*="segmentedContainer"]') ? element : element.querySelector('.index__segmentedContainer___JQRgw, [class*="segmentedContainer"]');
+    if (!container) return false;
+    const labelEls = Array.from(container.querySelectorAll(
+      '[class*="WFSegmentedControl__segments"] li > a, [class*="segments"] li > a'
+    ));
+    const labels = labelEls.map((a) => a.textContent.trim()).filter((t) => t.length > 0);
+    if (labels.length < 2) return false;
+    const panelContent = buildRatePanelContent(container, document);
+    if (panelContent.length === 0) return false;
+    const cells = [];
+    labels.forEach((label, idx) => {
+      const contentEl = document.createElement("div");
+      if (idx === 0) {
+        panelContent.forEach((node) => contentEl.appendChild(node));
+      } else {
+        const note = document.createElement("p");
+        note.textContent = "Rate rows for this tab are loaded dynamically.";
+        contentEl.appendChild(note);
+      }
+      cells.push([[label], [contentEl]]);
+    });
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+    element.replaceWith(block);
+    return true;
+  }
+  function parseReferenceTabs(container, document, url) {
+    let pagePath = "";
+    try {
+      const urlObj = new URL(url);
+      pagePath = urlObj.pathname.replace(/\/$/, "").replace(/^\//, "");
+    } catch (e) {
+      pagePath = url.replace(/^https?:\/\/[^/]+/, "").replace(/\/$/, "").replace(/^\//, "");
+    }
+    const fragmentBase = "/fragments/" + pagePath;
+    const tabData = [];
+    const elementsToRemove = /* @__PURE__ */ new Set();
+    let firstTabLabelEl = null;
+    for (const tab of KNOWN_REFERENCE_TABS) {
+      const anchor = container.querySelector(`a[href="#${tab.id}"]`);
+      if (!anchor) continue;
+      const labelEl = anchor.closest("p") || anchor.closest("div");
+      if (!labelEl) continue;
+      if (!firstTabLabelEl) firstTabLabelEl = labelEl;
+      const panelEl = labelEl.nextElementSibling;
+      if (panelEl) elementsToRemove.add(panelEl);
+      elementsToRemove.add(labelEl);
+      tabData.push({ label: tab.label, fragmentPath: fragmentBase + "/" + tab.slug });
+    }
+    if (tabData.length < 3) return false;
+    const allParagraphs = container.querySelectorAll("p");
+    for (const p of allParagraphs) {
+      const anchor = p.querySelector('a[href^="#"]');
+      if (!anchor) continue;
+      const href = (anchor.getAttribute("href") || "").replace("#", "");
+      if (isKnownReferenceTab(href)) {
+        elementsToRemove.add(p);
+        const next = p.nextElementSibling;
+        if (next && (next.querySelector("h3") || (next.className || "").includes("cards"))) {
+          elementsToRemove.add(next);
+        }
+      }
+    }
+    for (const p of allParagraphs) {
+      const anchors = p.querySelectorAll('a[href^="#"]');
+      if (anchors.length >= 3) {
+        const matchCount = Array.from(anchors).filter((a) => isKnownReferenceTab((a.getAttribute("href") || "").replace("#", ""))).length;
+        if (matchCount >= 3) elementsToRemove.add(p);
+      }
+    }
+    const cells = tabData.map((tab) => [[tab.label], [tab.fragmentPath]]);
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs (reference)", cells });
+    if (firstTabLabelEl && firstTabLabelEl.parentNode) {
+      firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
+    }
+    elementsToRemove.forEach((el) => {
+      if (el.parentNode) el.remove();
+    });
+    return true;
+  }
+  function parseGenericTabs(container, document, tabAnchors) {
+    const tabData = [];
+    const elementsToRemove = /* @__PURE__ */ new Set();
+    let firstTabLabelEl = null;
+    for (const { label, anchorEl } of tabAnchors) {
+      const labelEl = anchorEl.closest("p") || anchorEl.parentElement;
+      if (!labelEl) continue;
+      if (!firstTabLabelEl) firstTabLabelEl = labelEl;
+      const panelEl = labelEl.nextElementSibling;
+      if (!panelEl) continue;
+      tabData.push({ label, content: panelEl.innerHTML || "" });
+      elementsToRemove.add(labelEl);
+      elementsToRemove.add(panelEl);
+    }
+    if (tabData.length < 2) return false;
+    const allParagraphs = container.querySelectorAll("p");
+    const knownIds = tabAnchors.map((t) => t.id);
+    for (const p of allParagraphs) {
+      const anchors = p.querySelectorAll('a[href^="#"]');
+      if (anchors.length >= tabAnchors.length) {
+        const matchCount = Array.from(anchors).filter((a) => knownIds.includes((a.getAttribute("href") || "").replace("#", ""))).length;
+        if (matchCount >= tabAnchors.length) elementsToRemove.add(p);
+      }
+    }
+    for (const p of allParagraphs) {
+      if (elementsToRemove.has(p)) continue;
+      const anchor = p.querySelector('a[href^="#"]');
+      if (!anchor) continue;
+      const href = (anchor.getAttribute("href") || "").replace("#", "");
+      if (knownIds.includes(href)) {
+        elementsToRemove.add(p);
+        const next = p.nextElementSibling;
+        if (next && (next.querySelector("h3") || next.querySelector("p"))) {
+          elementsToRemove.add(next);
+        }
+      }
+    }
+    const cells = tabData.map((tab) => {
+      const contentEl = document.createElement("div");
+      contentEl.innerHTML = tab.content;
+      return [[tab.label], [contentEl]];
+    });
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+    if (firstTabLabelEl && firstTabLabelEl.parentNode) {
+      firstTabLabelEl.parentNode.insertBefore(block, firstTabLabelEl);
+    }
+    elementsToRemove.forEach((el) => {
+      if (el.parentNode) el.remove();
+    });
+    return true;
+  }
+  function parse7(element, { document, url }) {
+    if (!element) return false;
+    if (element.matches('.index__segmentedContainer___JQRgw, [class*="segmentedContainer"]') || element.querySelector('.index__segmentedContainer___JQRgw, [class*="segmentedContainer"]')) {
+      if (parseRateWidget(element, document)) return true;
+    }
+    const allAnchors = element.querySelectorAll('a[href^="#"]');
+    const tabAnchors = [];
+    const seenIds = /* @__PURE__ */ new Set();
+    for (const a of allAnchors) {
+      const href = (a.getAttribute("href") || "").replace("#", "");
+      if (!href || href === "skip" || seenIds.has(href)) continue;
+      if (/^[a-z][a-z0-9]*$/.test(href) || /^[a-z]+[a-z!]*$/.test(href)) {
+        const label = a.textContent.trim();
+        if (label && label.length > 2 && label.length < 80) {
+          seenIds.add(href);
+          tabAnchors.push({ id: href, label, anchorEl: a });
+        }
+      }
+    }
+    if (tabAnchors.length < 2) return false;
+    const knownCount = tabAnchors.filter((t) => isKnownReferenceTab(t.id)).length;
+    if (knownCount >= 3) {
+      return parseReferenceTabs(element, document, url || "");
+    }
+    return parseGenericTabs(element, document, tabAnchors);
+  }
+
+  // tools/importer/parsers/table.js
+  function parse8(element, { document }) {
+    const loanWrappers = Array.from(element.querySelectorAll(".index__loanwrapper___ki3Um")).filter((w) => w.querySelector(".index__link___lRnLV, .index__linkwrapper___pJne8"));
+    const rows = [];
+    loanWrappers.forEach((wrapper) => {
+      const loanNameEl = wrapper.querySelector(
+        ".index__link___lRnLV .WFLink__text___Ia8fg, .index__linkwrapper___pJne8 a"
+      );
+      const loanName = loanNameEl ? loanNameEl.textContent.trim() : "";
+      if (!loanName) return;
+      const right = wrapper.parentElement ? wrapper.parentElement.querySelector(".index__right___w1BUv") : null;
+      let interest = "";
+      let apr = "";
+      let points = "";
+      if (right) {
+        const metricEls = Array.from(right.querySelectorAll(".index__interest___HVlqg"));
+        [interest, apr, points] = metricEls.map((m) => m.textContent.trim());
+      }
+      rows.push([loanName, interest || "", apr || "", points || ""]);
+    });
+    if (rows.length === 0) {
+      return;
+    }
+    const cells = [];
+    cells.push(["Loan", "Interest", "APR", "Points"]);
+    rows.forEach((r) => cells.push(r));
+    const block = WebImporter.Blocks.createBlock(document, { name: "Table", cells });
+    element.replaceWith(block);
+  }
+
   // tools/importer/transformers/wellsfargo-cleanup.js
   var H = { before: "beforeTransform", after: "afterTransform" };
   var TAG_MAPPINGS = [
@@ -345,11 +621,13 @@ var CustomImportScript = (() => {
         ".ps-support-dropdown-overlay",
         ".ps-fat-nav-overlay",
         ".ps-fat-nav-outer",
+        ".ps-fat-nav-l3-wrapper",
         "#containerL3Mobile",
         ".ps-emergency-message",
         'a.hidden[href="#skip"]',
         'nav[aria-label="Breadcrumb"]',
         ".breadcrumb",
+        ".ps-rsk-breadcrumb-container",
         "#feedbackSurvey",
         ".feedback-survey"
       ]);
@@ -434,7 +712,9 @@ var CustomImportScript = (() => {
     "cards-no-images": parse4,
     "accordion": parse3,
     "disclaimers": parse5,
-    "video": parse6
+    "video": parse6,
+    "tabs": parse7,
+    "table": parse8
   };
   var VARIANT_RULES = {
     // Image size threshold: below this = icon, above = photo
@@ -532,6 +812,15 @@ var CustomImportScript = (() => {
         el.replaceWith(block);
       }
     });
+    main.querySelectorAll('.index__segmentedContainer___JQRgw, [class*="segmentedContainer"]').forEach((el) => {
+      if (processed.has(el)) return;
+      processed.add(el);
+      el.querySelectorAll("*").forEach((child) => processed.add(child));
+      try {
+        parsers["tabs"](el, { document, url, params });
+      } catch (e) {
+      }
+    });
     let heroCount = 0;
     main.querySelectorAll(".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container").forEach((el) => {
       if (processed.has(el)) return;
@@ -619,7 +908,8 @@ var CustomImportScript = (() => {
     }
     main.querySelectorAll('.small-promo-combined, [class*="card-background"]:has(.card-container), .ps-marketing-small-promo-items').forEach((el) => {
       if (processed.has(el)) return;
-      const headings = el.querySelectorAll("h3, h4");
+      const isFeatureGrid = (el.className || "").includes("ps-marketing-small-promo-items");
+      const headings = isFeatureGrid ? el.querySelectorAll("h2, h3, h4") : el.querySelectorAll("h3, h4");
       if (headings.length < 2) return;
       processed.add(el);
       const variant = VARIANT_RULES.getCardsVariant(el);
@@ -827,7 +1117,8 @@ var CustomImportScript = (() => {
       const footnoteCids = main.getAttribute("data-footnotes");
       const footnotePageid = main.getAttribute("data-pageid");
       if (footnoteCids || footnotePageid) {
-        const metaTable = main.querySelector("table:last-of-type");
+        const directTables = Array.from(main.querySelectorAll(":scope > table"));
+        const metaTable = directTables[directTables.length - 1];
         if (metaTable) {
           const tbody = metaTable.querySelector("tbody") || metaTable;
           if (footnoteCids) {

@@ -8,6 +8,9 @@ import accordionParser from './parsers/accordion.js';
 import contactInfoParser from './parsers/contact-info.js';
 import disclaimersParser from './parsers/disclaimers.js';
 import videoParser from './parsers/video.js';
+import tabsParser from './parsers/tabs.js';
+import tableParser from './parsers/table.js';
+import promoParser from './parsers/promo.js';
 
 // TRANSFORMER IMPORTS
 import wellsfargoCleanup from './transformers/wellsfargo-cleanup.js';
@@ -20,6 +23,9 @@ const parsers = {
   'accordion': accordionParser,
   'disclaimers': disclaimersParser,
   'video': videoParser,
+  'tabs': tabsParser,
+  'table': tableParser,
+  'promo': promoParser,
 };
 
 /**
@@ -158,6 +164,25 @@ function runParsers(main, document, url, params) {
     }
   });
 
+  // TABS: rate widget (Home Purchase / Refinance) wrapping a table of rate rows.
+  // Claim before hero/cards so its inner images/headings aren't mis-detected.
+  main.querySelectorAll('.index__segmentedContainer___JQRgw, [class*="segmentedContainer"]').forEach((el) => {
+    if (processed.has(el)) return;
+    processed.add(el);
+    // mark descendants processed so later passes skip the widget internals
+    el.querySelectorAll('*').forEach((child) => processed.add(child));
+    try { parsers['tabs'](el, { document, url, params }); } catch (e) { /* keep as-is */ }
+  });
+
+  // PROMO: full-bleed marketing banner (.ps-large-promo-full-container).
+  // Claimed before the hero pass so it isn't mis-detected as a Hero.
+  main.querySelectorAll('.ps-large-promo-full-container').forEach((el) => {
+    if (processed.has(el)) return;
+    processed.add(el);
+    el.querySelectorAll('*').forEach((child) => processed.add(child));
+    try { parsers['promo'](el, { document, url, params }); } catch (e) { /* keep as-is */ }
+  });
+
   // HERO: marquee/promo containers with images
   let heroCount = 0;
   main.querySelectorAll('.rsk-marquee-container, .marquee-container, .ps-large-promo-full-container').forEach((el) => {
@@ -239,7 +264,12 @@ function runParsers(main, document, url, params) {
   // CARDS: Detect and choose variant using heuristics
   main.querySelectorAll('.small-promo-combined, [class*="card-background"]:has(.card-container), .ps-marketing-small-promo-items').forEach((el) => {
     if (processed.has(el)) return;
-    const headings = el.querySelectorAll('h3, h4');
+    // Feature-grid items (.ps-marketing-small-promo-items) title each card with h2;
+    // legacy promo cards use h3/h4. Count whichever the source uses.
+    const isFeatureGrid = (el.className || '').includes('ps-marketing-small-promo-items');
+    const headings = isFeatureGrid
+      ? el.querySelectorAll('h2, h3, h4')
+      : el.querySelectorAll('h3, h4');
     if (headings.length < 2) return;
 
     processed.add(el);
@@ -508,7 +538,11 @@ export default {
     const footnoteCids = main.getAttribute('data-footnotes');
     const footnotePageid = main.getAttribute('data-pageid');
     if (footnoteCids || footnotePageid) {
-      const metaTable = main.querySelector('table:last-of-type');
+      // The page-metadata table is the LAST direct-child table of main (appended by
+      // createMetadata above). Scope to direct children so nested block tables
+      // (e.g. the tabs/rate table) are never matched by mistake.
+      const directTables = Array.from(main.querySelectorAll(':scope > table'));
+      const metaTable = directTables[directTables.length - 1];
       if (metaTable) {
         const tbody = metaTable.querySelector('tbody') || metaTable;
         if (footnoteCids) {

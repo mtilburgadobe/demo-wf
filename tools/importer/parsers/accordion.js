@@ -8,12 +8,27 @@
  * Source: https://www.wellsfargo.com/mortgage/
  *
  * Extracts FAQ accordion items from <details> elements.
- * Each details element = one row: col1 = summary (question), col2 = body (answer).
+ * Accordion convention: 2 columns; each item row = [ title | content ].
+ * col1 = summary (question), col2 = body (answer). Footnote-ref <sup> superscripts
+ * inside answers are preserved (body children are moved by reference).
  */
 export default function parse(element, { document }) {
-  const detailsList = element.tagName === 'DETAILS'
-    ? [element]
-    : Array.from(element.querySelectorAll('details'));
+  let detailsList;
+  if (element.tagName === 'DETAILS') {
+    // The instance selector targets the first <details> of a run of FAQ siblings.
+    // Collect this element plus all consecutive following-sibling <details>
+    // (share the show-hide-content-wrapper class) so the whole FAQ group becomes
+    // one Accordion block.
+    detailsList = [element];
+    let sib = element.nextElementSibling;
+    while (sib && sib.tagName === 'DETAILS'
+      && (sib.className || '').includes('show-hide-content-wrapper')) {
+      detailsList.push(sib);
+      sib = sib.nextElementSibling;
+    }
+  } else {
+    detailsList = Array.from(element.querySelectorAll('details'));
+  }
 
   const cells = [];
 

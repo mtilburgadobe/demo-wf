@@ -3,83 +3,82 @@
 
 /**
  * Parser: cards-feature
- * Base block: cards
- * Source: https://www.wellsfargo.com/
- * Generated: 2026-05-17
+ * Base block: cards (Block Collection)
+ * Source: https://www.wellsfargo.com/mortgage/rates/ (2x2 feature grid) and
+ *         https://www.wellsfargo.com/ (small-promo cards)
  *
- * Extracts feature card items from the source DOM and produces a Cards block table.
- * Target structure (from library example):
- *   | Cards (feature) | |
- *   | [image]         | heading + description + CTA link |
- *   | [image]         | heading + description + CTA link |
+ * Cards convention: 2 columns. First row = block name (+ variant in parens).
+ * Each subsequent row = one card: [ image/icon cell | content cell (heading + text + CTA) ].
  *
- * Source structure (validated against source.html):
- *   .card-background-white.text-aligned-center
- *     .card-container (.three-card or .two-card)
- *       .enhanced-txt-cm.mid-size-promo (.three-card-content or .two-card-content)
- *         div > img                          -> col1: image
- *         .enhanced-txt-body
- *           h3                               -> col2: heading
- *           div (text)                       -> col2: description
- *           p > a                            -> col2: CTA link
+ * Source A — 2x2 feature grid (.ps-marketing-small-promo-items):
+ *   .ps-marketing-small-promo-item
+ *     .mark-small-promo-icon > img            (decorative spacer/gradient — IGNORED)
+ *     .ps-marketing-icon-container .ps-marketing-icon > img   -> col1 icon image (<=100px)
+ *     .ps-marketing-text
+ *       h2                                    -> col2 heading
+ *       p.ps-marketing-text-content (may contain footnote <sup>) -> col2 description
+ *       p.learn-more-mobile > span > a  /  .ps-marketing-promo-link .learn-more a (DUP) -> col2 CTA
  *
- * Handles variations: 2-card and 3-card layouts, .ps-promo-full-* selectors.
+ * Source B — legacy promo cards:
+ *   .enhanced-txt-cm.mid-size-promo / [class*="card-content"] with img + h3 + text + p>a
+ *
+ * Variant: icon-sized images (<=100px or marketing icons) => "Cards (icons)".
  */
 export default function parse(element, { document }) {
-  // Find individual card items within the element.
-  // Primary: .enhanced-txt-cm.mid-size-promo (validated in source.html)
-  // Fallback: [class*="card-content"] matches .three-card-content / .two-card-content
-  // Fallback: .ps-promo-full-item for alternate selector patterns
-  let cardItems = Array.from(element.querySelectorAll(
-    '.enhanced-txt-cm.mid-size-promo, .ps-promo-full-item, [class*="card-content"]:not(.card-container)'
-  ));
+  const isFeatureGrid = element.matches('.ps-marketing-small-promo-items')
+    || !!element.querySelector('.ps-marketing-small-promo-item');
 
-  // If no card items found, look inside a card-container wrapper
-  if (cardItems.length === 0) {
-    const container = element.querySelector('.card-container, [class*="promo-full-items"]');
-    if (container) {
-      cardItems = Array.from(container.children);
+  let cardItems;
+  if (isFeatureGrid) {
+    cardItems = Array.from(element.querySelectorAll('.ps-marketing-small-promo-item'));
+  } else {
+    cardItems = Array.from(element.querySelectorAll(
+      '.enhanced-txt-cm.mid-size-promo, .ps-promo-full-item, [class*="card-content"]:not(.card-container)'
+    ));
+    if (cardItems.length === 0) {
+      const container = element.querySelector('.card-container, [class*="promo-full-items"]');
+      if (container) cardItems = Array.from(container.children);
     }
-  }
-
-  // Last resort: direct child divs of the element
-  if (cardItems.length === 0) {
-    cardItems = Array.from(element.querySelectorAll(':scope > div'));
+    if (cardItems.length === 0) {
+      cardItems = Array.from(element.querySelectorAll(':scope > div'));
+    }
   }
 
   const cells = [];
 
   cardItems.forEach((card) => {
-    // --- Col 1: Image ---
-    // Source: first div > img inside each card
-    const image = card.querySelector('img');
+    // --- Col 1: icon/image ---
+    // For the feature grid the real icon is the .ps-marketing-icon img; the
+    // .mark-small-promo-icon img is a decorative spacer that must be skipped.
+    let image = null;
+    if (isFeatureGrid) {
+      image = card.querySelector('.ps-marketing-icon img');
+    }
+    if (!image) {
+      image = card.querySelector('img');
+    }
 
-    // --- Col 2: Content (heading + description + CTA) ---
-    const textBody = card.querySelector('.enhanced-txt-body, .ps-marketing-text') || card;
+    // --- Col 2: content (heading + description + single CTA) ---
+    const textBody = card.querySelector('.ps-marketing-text, .enhanced-txt-body') || card;
 
-    // Heading: h3 is primary from source, fallback h2/h4 for variation
-    const heading = textBody.querySelector('h3, h2, h4')
-      || card.querySelector('h3, h2, h4');
+    const heading = textBody.querySelector('h2, h3, h4') || card.querySelector('h2, h3, h4');
 
-    // Description: div child of .enhanced-txt-body that is not a heading wrapper
-    // and not a paragraph containing only a CTA link
-    let description = null;
-    const candidates = textBody.querySelectorAll(':scope > div, :scope > p');
-    for (const child of candidates) {
-      if (child.querySelector('h2, h3, h4')) continue;
-      const link = child.querySelector('a');
-      if (link && child.textContent.trim() === link.textContent.trim()) continue;
-      if (child.textContent.trim()) {
-        description = child;
-        break;
+    // Description: prefer the dedicated marketing-text paragraph (keeps footnote <sup>).
+    let description = textBody.querySelector('p.ps-marketing-text-content');
+    if (!description) {
+      const candidates = textBody.querySelectorAll(':scope > div, :scope > p');
+      for (const child of candidates) {
+        if (child.querySelector('h2, h3, h4')) continue;
+        const link = child.querySelector('a');
+        if (link && child.textContent.trim() === link.textContent.trim()) continue;
+        if (child.textContent.trim()) { description = child; break; }
       }
     }
 
-    // CTA link: p > a inside .enhanced-txt-body (validated in source.html)
-    const ctaLink = textBody.querySelector('p > a, a.cta, a.button')
-      || card.querySelector('p > a');
+    // CTA: source duplicates the link (mobile + desktop). Take the first one only.
+    const ctaLink = textBody.querySelector('.learn-more-mobile a, .learn-more a, p > a, a.cta, a.button')
+      || card.querySelector('.ps-marketing-promo-link a, p > a');
 
-    // Build content cell: references to source elements (no unnecessary copies)
     const contentCell = [];
 
     if (heading) {
@@ -90,6 +89,7 @@ export default function parse(element, { document }) {
 
     if (description) {
       const p = document.createElement('p');
+      // Preserve inner markup so footnote-ref superscripts (<sup>) survive.
       p.innerHTML = description.innerHTML;
       contentCell.push(p);
     }
@@ -97,27 +97,29 @@ export default function parse(element, { document }) {
     if (ctaLink) {
       const p = document.createElement('p');
       const link = document.createElement('a');
-      link.href = ctaLink.href;
-      // Strip trailing ">" arrows — the block CSS adds these via ::after
+      link.href = ctaLink.href || ctaLink.getAttribute('href') || '';
       link.textContent = ctaLink.textContent.replace(/\s*>\s*$/, '').trim();
       p.appendChild(link);
       contentCell.push(p);
     }
 
-    // Only add row if we have meaningful content
     if (image || contentCell.length > 0) {
       cells.push([image || '', contentCell]);
     }
   });
 
-  // Determine variant: icons if images are small (64x64 icon-size), separator if photos
+  // Determine variant: icons if images are icon-sized (marketing icons or <=100px).
   let variant = 'Cards (separator)';
-  const firstImg = element.querySelector('img');
-  if (firstImg) {
-    const src = (firstImg.src || firstImg.getAttribute('src') || '').toLowerCase();
-    const w = parseInt(firstImg.getAttribute('width') || '0', 10);
-    if (w > 0 && w <= 100 || src.includes('64x64') || src.includes('icon') || src.includes('-64x') || src.includes('gradient-64')) {
-      variant = 'Cards (icons, bg-image)';
+  if (isFeatureGrid) {
+    variant = 'Cards (icons)';
+  } else {
+    const firstImg = element.querySelector('img');
+    if (firstImg) {
+      const src = (firstImg.src || firstImg.getAttribute('src') || '').toLowerCase();
+      const w = parseInt(firstImg.getAttribute('width') || '0', 10);
+      if ((w > 0 && w <= 100) || src.includes('64x64') || src.includes('icon') || src.includes('-64x') || src.includes('gradient-64')) {
+        variant = 'Cards (icons)';
+      }
     }
   }
 

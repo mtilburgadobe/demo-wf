@@ -20,6 +20,10 @@ export default function decorate(block) {
     ul.append(li);
   });
   ul.querySelectorAll('picture > img').forEach((img) => {
+    // Data-URI images (embedded pre-DA-ingestion) must not be run through
+    // createOptimizedPicture — it turns the inline base64 into a broken URL.
+    // DA rewrites these to media_<hash> URLs on preview/publish; leave as-is.
+    if (img.src.startsWith('data:')) return;
     if (!img.src.startsWith('http') || img.src.includes(window.location.hostname)) {
       // Preserve intrinsic dimensions so the optimized <img> has explicit width/height
       // (avoids CLS / "Image elements do not have explicit width and height").

@@ -8,16 +8,23 @@
  * Generated: 2026-05-17T00:00:00Z
  *
  * Maps source containers to fragment paths:
- *   .ps-native-app-container  → /fragments/app-promo
- *   .contact-bar-container    → /fragments/help-cta-default
+ *   .ps-native-app-container    → /fragments/app-promo
+ *   .contact-bar-container      → /fragments/help-cta-default
+ *   .card-container.three-card  → /fragments/mortgage/talk-to-mortgage-consultant
+ *
+ * The consultant fragment holds the "Talk to a mortgage consultant" contact cards
+ * (phone number, sign-on/tool URLs). Per AGENTS.md Rule 5 & Rule 7 those dynamic
+ * values live in the fragment (resolved from placeholders.json) and are NEVER
+ * inlined here — this parser only emits the fragment reference link.
  *
  * Target table structure (from library example):
  *   | Fragment |
  *   | [/fragments/...](/fragments/...) |
  */
 export default function parse(element, { document }) {
-  // Map source selectors to fragment paths
+  // Map source selectors to fragment paths. Order matters: most-specific first.
   const fragmentMapping = [
+    { selector: '.card-container.three-card', path: '/fragments/mortgage/talk-to-mortgage-consultant' },
     { selector: '.ps-native-app-container', path: '/fragments/app-promo' },
     { selector: '.contact-bar-container', path: '/fragments/help-cta-default' },
   ];

@@ -6,6 +6,7 @@
  * Removes non-authorable content (header, footer, sign-on, navigation, cookie consent,
  * modals, tracking iframes, and empty/decorative elements).
  * All selectors verified against migration-work/cleaned.html.
+ * Reused across homepage and product-landing templates (site-wide).
  */
 const H = { before: 'beforeTransform', after: 'afterTransform' };
 
@@ -52,6 +53,10 @@ export default function transform(hookName, element, payload) {
     // --- Remove non-authorable site shell elements ---
 
     // Header/masthead/nav - all header variants across page types
+    // Breadcrumb on product-landing pages is a sibling <nav> of <main> wrapping
+    // .ps-rsk-breadcrumb-container (cleaned.html line 208-230). EDS auto-generates
+    // the breadcrumb, so the source breadcrumb must be removed. The leftover fat-nav
+    // L3 hook (.ps-fat-nav-l3-wrapper, cleaned.html line 200) is nav chrome too.
     WebImporter.DOMUtils.remove(element, [
       'header',
       '.ps-masthead',
@@ -59,11 +64,13 @@ export default function transform(hookName, element, payload) {
       '.ps-support-dropdown-overlay',
       '.ps-fat-nav-overlay',
       '.ps-fat-nav-outer',
+      '.ps-fat-nav-l3-wrapper',
       '#containerL3Mobile',
       '.ps-emergency-message',
       'a.hidden[href="#skip"]',
       'nav[aria-label="Breadcrumb"]',
       '.breadcrumb',
+      '.ps-rsk-breadcrumb-container',
       '#feedbackSurvey',
       '.feedback-survey',
     ]);

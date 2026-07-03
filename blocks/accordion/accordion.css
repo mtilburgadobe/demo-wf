@@ -44,20 +44,31 @@
   margin: 0;
 }
 
+/* plus/minus indicator drawn with two bars — no external asset */
 .accordion details summary::before {
   content: '';
   position: absolute;
-  left: -3px;
+  left: 0;
   top: 50%;
-  transform: translateY(-50%) scale(0.7);
-  width: 22px;
-  height: 20px;
-  min-width: 20px;
-  background: url('https://www17.wellsfargomedia.com/assets/images/sprite/responsive-sprite-v15.png') -481px -132px;
+  width: 14px;
+  height: 2px;
+  background-color: var(--wf-red);
 }
 
-.accordion details[open] summary::before {
-  background-position: -436px -132px;
+.accordion details summary::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 2px;
+  height: 14px;
+  margin-top: -6px;
+  background-color: var(--wf-red);
+  transition: transform 0.15s ease;
+}
+
+.accordion details[open] summary::after {
+  transform: scaleY(0);
 }
 
 .accordion details .accordion-item-body {
@@ -84,7 +95,11 @@
 }
 
 .accordion.compact details summary::before {
-  top: 22px;
+  top: 24px;
+}
+
+.accordion.compact details summary::after {
+  top: 24px;
 }
 
 .accordion.compact details .accordion-item-body {

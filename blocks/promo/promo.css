@@ -1,0 +1,87 @@
+/* Promo — full-bleed marketing banner (image with overlaid heading/text/CTA).
+   Mobile: content stacks above/below on the brand-accent field.
+   Desktop: image fills the band; content overlays on the left. */
+.promo {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--wf-yellow, #fcc60a);
+}
+
+.promo .promo-media {
+  margin: 0;
+  line-height: 0;
+}
+
+.promo .promo-media picture,
+.promo .promo-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.promo .promo-content {
+  padding: 32px 22px;
+  color: var(--wf-text-primary, #3b3331);
+}
+
+.promo .promo-content h2 {
+  margin: 0 0 16px;
+}
+
+.promo .promo-content p {
+  margin: 0 0 20px;
+  font-size: var(--body-font-size-m, 17px);
+  line-height: 1.5;
+}
+
+.promo .promo-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* CTA renders as a pill button (matches global .button). */
+.promo .promo-content a.button,
+.promo .promo-content p > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 177px;
+  padding: 9px 16px;
+  border-radius: 24px;
+  background-color: var(--wf-bg-white, #fff);
+  color: var(--wf-text-primary, #3b3331);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.promo .promo-content a.button:hover,
+.promo .promo-content p > a:hover {
+  background-color: var(--wf-bg-light, #f9f7f6);
+  text-decoration: none;
+}
+
+/* Desktop: image fills the band edge-to-edge; content overlays on the left,
+   constrained to the centered content width. */
+@media (width >= 1024px) {
+  .promo .promo-media img {
+    height: 100%;
+    max-height: 460px;
+  }
+
+  .promo .promo-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width, 1400px);
+    margin: 0 auto;
+    padding: 0 134px;
+  }
+
+  .promo .promo-content > * {
+    max-width: 480px;
+  }
+}

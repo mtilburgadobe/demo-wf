@@ -11,7 +11,38 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  readBlockConfig,
+  toClassName,
+  toCamelCase,
 } from './aem.js';
+
+/**
+ * Applies authored `section-metadata` blocks to their section.
+ * The project's aem.js decorateSections does not process section metadata, so
+ * this runs after it: a `style` key becomes space-separated section classes
+ * (e.g. "center-align, heading-bar"), other keys become data attributes. The
+ * source section-metadata block is then removed.
+ * @param {Element} main The main element
+ */
+function decorateSectionMetadata(main) {
+  main.querySelectorAll('.section .section-metadata').forEach((sectionMeta) => {
+    const section = sectionMeta.closest('.section');
+    const meta = readBlockConfig(sectionMeta);
+    Object.keys(meta).forEach((key) => {
+      if (key === 'style') {
+        meta.style.split(',')
+          .map((style) => toClassName(style.trim()))
+          .filter(Boolean)
+          .forEach((style) => section.classList.add(style));
+      } else {
+        section.dataset[toCamelCase(key)] = meta[key];
+      }
+    });
+    // Remove the section-metadata block and its wrapper so it isn't treated
+    // as a loadable block by decorateBlocks.
+    (sectionMeta.closest('.section-metadata-wrapper') || sectionMeta).remove();
+  });
+}
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -163,6 +194,7 @@ export function decorateMain(main, isFragment = false) {
   decorateIcons(main);
   buildAutoBlocks(main, isFragment);
   decorateSections(main);
+  decorateSectionMetadata(main);
   decorateBlocks(main);
   decorateButtons(main);
 }

@@ -14,24 +14,28 @@
         {
           "name": "hero",
           "detection": ".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container",
+          "instances": [".marquee-container", ".rsk-marquee-container", ".ps-large-promo-full-container"],
           "variant": "default or overlay-bottom",
           "notes": "Image + heading + CTA, no multiple h3s"
         },
         {
           "name": "cards",
           "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
+          "instances": [".small-promo-combined", ".ps-marketing-small-promo-items"],
           "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
           "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
         },
         {
           "name": "accordion",
           "detection": "details.show-hide-content-wrapper",
+          "instances": ["details.show-hide-content-wrapper.first-show-hide", "details.show-hide-content-wrapper"],
           "variant": "default",
           "notes": "Groups consecutive <details> siblings into one block"
         },
         {
           "name": "disclaimers",
           "detection": ".ps-footnote",
+          "instances": [".ps-footnote"],
           "variant": "default",
           "notes": "Numbered footnotes section"
         }
@@ -40,34 +44,67 @@
     {
       "name": "product-landing",
       "urls": [
+        "https://www.wellsfargo.com/mortgage/rates/",
         "https://www.wellsfargo.com/mortgage/",
         "https://www.wellsfargo.com/mortgage/buying-a-house/",
         "https://www.wellsfargo.com/es/online-banking/biometric/",
         "https://www.wellsfargo.com/es/online-banking/manage-accounts/card-controls/"
       ],
-      "description": "Wells Fargo product landing pages — uses smart auto-detection for block mapping. Supports multiple heroes, cards with/without images, accordion FAQs, and disclaimers.",
+      "description": "Wells Fargo product landing pages — uses smart auto-detection for block mapping. Supports multiple heroes, cards with/without images, tabbed rate tables, accordion FAQs, consultant fragments, and disclaimers.",
       "blocks": [
         {
+          "name": "tabs",
+          "detection": ".index__segmentedContainer___JQRgw, [class*='segmentedContainer']",
+          "instances": [".index__segmentedContainer___JQRgw"],
+          "variant": "default",
+          "notes": "Tabbed rate widget (Home Purchase / Refinance). Each tab wraps a table of rate rows (Loan / Interest / APR / Points)"
+        },
+        {
+          "name": "table",
+          "detection": ".index__segmentedContainer___JQRgw [class*='rateRow'], [class*='segmentedContainer'] [role='row']",
+          "instances": [".index__segmentedContainer___JQRgw"],
+          "variant": "default",
+          "notes": "Rate rows inside each tab panel: columns Loan / Interest / APR / Points. Inner block of tabs (emitted by the tabs parser)"
+        },
+        {
+          "name": "promo",
+          "detection": ".ps-large-promo-full-container",
+          "instances": [".ps-large-promo-full-container"],
+          "variant": "default",
+          "notes": "Full-bleed marketing banner: image + heading + text + CTA. Claimed before hero. Rows: image, then content"
+        },
+        {
           "name": "hero",
-          "detection": ".rsk-marquee-container, .marquee-container, .ps-large-promo-full-container",
+          "detection": ".rsk-marquee-container, .marquee-container",
+          "instances": [".rsk-marquee-container", ".marquee-container"],
           "variant": "default",
           "notes": "Multiple heroes per page supported. Detected by: image + heading + optional CTA, not multiple h3s"
         },
         {
           "name": "cards",
-          "detection": ".small-promo-combined, [class*='card-background']:has(.card-container)",
+          "detection": ".small-promo-combined, .ps-marketing-small-promo-items, [class*='card-background']:has(.card-container)",
+          "instances": [".ps-marketing-small-promo-items", ".small-promo-combined"],
           "variant": "separator (with images), icons, icons-middle, highlight, bg-light, bg-image",
-          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled)"
+          "notes": "Images with icons (<=100px) = icons variant; larger images = separator; no images = default Cards (auto-handled). .ps-marketing-small-promo-items = 2x2 feature grid (icons variant)"
         },
         {
           "name": "accordion",
           "detection": "details.show-hide-content-wrapper",
+          "instances": ["details.show-hide-content-wrapper.first-show-hide"],
           "variant": "default",
-          "notes": "Groups consecutive <details> siblings. FAQ questions use <h3> in col1, answer in col2"
+          "notes": "Groups consecutive <details> siblings. FAQ questions use <h3> in col1, answer in col2. Parser collects following sibling <details> from the first one"
+        },
+        {
+          "name": "fragment",
+          "detection": ".card-container.three-card",
+          "instances": [".card-container.three-card"],
+          "variant": "default",
+          "notes": "Shared consultant contact content -> /fragments/mortgage/talk-to-mortgage-consultant (Rule 7). Never inlined"
         },
         {
           "name": "disclaimers",
           "detection": ".ps-footnote",
+          "instances": [".ps-footnote"],
           "variant": "default",
           "notes": "Numbered footnotes at page bottom"
         }
