@@ -376,10 +376,28 @@ var CustomImportScript = (() => {
       rows.push([loanName, interest || "", apr || "", points || ""]);
     });
     if (rows.length === 0) return null;
-    const cells = [];
-    cells.push(["Loan", "Interest", "APR", "Points"]);
-    rows.forEach((r) => cells.push(r));
-    return WebImporter.Blocks.createBlock(document, { name: "Table", cells });
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    ["Loan", "Interest", "APR", "Points"].forEach((label) => {
+      const th = document.createElement("th");
+      th.textContent = label;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    rows.forEach((r) => {
+      const tr = document.createElement("tr");
+      r.forEach((val) => {
+        const td = document.createElement("td");
+        td.textContent = val;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    return table;
   }
   function buildRatePanelContent(container, document) {
     const content = [];
@@ -421,7 +439,7 @@ var CustomImportScript = (() => {
       }
       cells.push([[label], [contentEl]]);
     });
-    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs", cells });
+    const block = WebImporter.Blocks.createBlock(document, { name: "Tabs (segmented)", cells });
     element.replaceWith(block);
     return true;
   }
@@ -587,6 +605,54 @@ var CustomImportScript = (() => {
     element.replaceWith(block);
   }
 
+  // tools/importer/parsers/promo.js
+  function parse9(element, { document }) {
+    const img = element.querySelector("picture img, img");
+    const heading = element.querySelector("h2, h1");
+    let description = null;
+    const paragraphs = element.querySelectorAll("p");
+    for (const p of paragraphs) {
+      const btnLink = p.querySelector('a[class*="btn"], strong > a, em > a');
+      if (btnLink && p.textContent.trim() === btnLink.textContent.trim()) continue;
+      if (p.textContent.trim()) {
+        description = p;
+        break;
+      }
+    }
+    const ctaLink = element.querySelector(
+      'a.ps-btn-primary, a.ps-btn-secondary, a[class*="ps-btn"], .ps-padding a, strong > a, em > a'
+    );
+    const imageCell = [];
+    if (img) {
+      const picture = img.closest("picture") || img;
+      imageCell.push(picture.cloneNode(true));
+    }
+    const contentCell = [];
+    if (heading) {
+      const h2 = document.createElement("h2");
+      h2.innerHTML = heading.innerHTML;
+      contentCell.push(h2);
+    }
+    if (description) {
+      const p = document.createElement("p");
+      p.innerHTML = description.innerHTML;
+      contentCell.push(p);
+    }
+    if (ctaLink) {
+      const p = document.createElement("p");
+      const a = document.createElement("a");
+      a.href = ctaLink.href || ctaLink.getAttribute("href") || "#";
+      a.textContent = ctaLink.textContent.trim();
+      const strong = document.createElement("strong");
+      strong.appendChild(a);
+      p.appendChild(strong);
+      contentCell.push(p);
+    }
+    const cells = [[imageCell], [contentCell]];
+    const block = WebImporter.Blocks.createBlock(document, { name: "Promo", cells });
+    element.replaceWith(block);
+  }
+
   // tools/importer/transformers/wellsfargo-cleanup.js
   var H = { before: "beforeTransform", after: "afterTransform" };
   var TAG_MAPPINGS = [
@@ -714,7 +780,8 @@ var CustomImportScript = (() => {
     "disclaimers": parse5,
     "video": parse6,
     "tabs": parse7,
-    "table": parse8
+    "table": parse8,
+    "promo": parse9
   };
   var VARIANT_RULES = {
     // Image size threshold: below this = icon, above = photo
@@ -818,6 +885,15 @@ var CustomImportScript = (() => {
       el.querySelectorAll("*").forEach((child) => processed.add(child));
       try {
         parsers["tabs"](el, { document, url, params });
+      } catch (e) {
+      }
+    });
+    main.querySelectorAll(".ps-large-promo-full-container").forEach((el) => {
+      if (processed.has(el)) return;
+      processed.add(el);
+      el.querySelectorAll("*").forEach((child) => processed.add(child));
+      try {
+        parsers["promo"](el, { document, url, params });
       } catch (e) {
       }
     });

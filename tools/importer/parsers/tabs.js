@@ -83,20 +83,10 @@ function buildRateTable(panel, document) {
   if (rows.length === 0) return null;
 
   // The rate table lives INSIDE a tab panel (2nd column of the Tabs block).
-  // A nested WebImporter block-table (with a "Table" name row) would not be
-  // decorated by EDS at render time, so emit a plain semantic <table> with a
-  // <thead> of column labels instead. Styled via .tabs .tabs-panel table.
+  // No <thead> — column labels (Loan/Interest/APR/Points) are rendered per
+  // cell via CSS ::before, so an explicit header row would show as a stray
+  // extra card after DA's markdown round-trip flattens <thead> into <tbody>.
   const table = document.createElement('table');
-  const thead = document.createElement('thead');
-  const headRow = document.createElement('tr');
-  ['Loan', 'Interest', 'APR', 'Points'].forEach((label) => {
-    const th = document.createElement('th');
-    th.textContent = label;
-    headRow.appendChild(th);
-  });
-  thead.appendChild(headRow);
-  table.appendChild(thead);
-
   const tbody = document.createElement('tbody');
   rows.forEach((r) => {
     const tr = document.createElement('tr');

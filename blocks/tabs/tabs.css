@@ -323,18 +323,12 @@
     border-spacing: 0 16px;
 }
 
-/* No single header row — the live site labels each value inside every card.
-   Hide the thead and repeat the column name above each value via ::before. */
+/* No header row — column labels (Loan/Interest/APR/Points) are repeated above
+   each value inside every card via ::before. The table has no <thead>; this
+   rule defensively hides one if any authoring/round-trip reintroduces it (a
+   flattened header row otherwise renders as a stray extra card). */
 .tabs .tabs-panel table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
+    display: none;
 }
 
 /* Card cells: white background, top+bottom hairline border, generous padding.
