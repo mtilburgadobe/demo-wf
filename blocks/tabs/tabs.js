@@ -1,5 +1,58 @@
 import { toClassName } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
+import rates from './rates-data.js';
+
+/**
+ * Build the rate-panel content (summary + rate table + disclosure) for a
+ * segmented rate tab from the JS rate store. Returns null when there is no
+ * rate data for the given tab id, leaving the authored content untouched.
+ */
+function buildRatePanel(id) {
+  const data = rates[id];
+  if (!data) return null;
+
+  const fragment = document.createDocumentFragment();
+
+  if (data.summary) {
+    const summary = document.createElement('p');
+    summary.textContent = data.summary;
+    fragment.append(summary);
+  }
+
+  const table = document.createElement('table');
+  const tbody = document.createElement('tbody');
+  data.rows.forEach((row) => {
+    const tr = document.createElement('tr');
+    row.forEach((value) => {
+      const td = document.createElement('td');
+      td.textContent = value;
+      tr.append(td);
+    });
+    tbody.append(tr);
+  });
+  table.append(tbody);
+  fragment.append(table);
+
+  if (data.disclosure) {
+    const disclosure = document.createElement('p');
+    disclosure.textContent = data.disclosure;
+    fragment.append(disclosure);
+  }
+
+  return fragment;
+}
+
+/**
+ * Replace authored rate rows in each segmented rate panel with rows injected
+ * from the JS rate store, so the store is the single source of truth.
+ */
+function injectRates(block) {
+  block.querySelectorAll('.tabs-panel').forEach((panel) => {
+    const id = panel.id.replace(/^tabpanel-/, '');
+    const content = buildRatePanel(id);
+    if (content) panel.replaceChildren(content);
+  });
+}
 
 function decorateStandardTabs(block) {
   const tablist = document.createElement('div');
@@ -125,4 +178,8 @@ export default async function decorate(block) {
   }
 
   decorateStandardTabs(block);
+
+  if (block.classList.contains('segmented')) {
+    injectRates(block);
+  }
 }

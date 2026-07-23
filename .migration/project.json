@@ -2,9 +2,9 @@
   "type": "da",
   "sites": {
     "wellsfargo": {
+      "libraryUrl": "https://main--sta-boilerplate--aemdemos.aem.page/tools/sidekick/library.json",
       "previewOrg": "acs-eds",
-      "previewSite": "wellsfargo",
-      "libraryUrl": "https://main--sta-boilerplate--aemdemos.aem.page/tools/sidekick/library.json"
+      "previewSite": "wellsfargo"
     }
   }
 }
